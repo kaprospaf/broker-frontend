@@ -1,46 +1,53 @@
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router";
+import API from "../utils/api";
+import { AuthContext } from "../context/AuthContext";
 
 export default function PostPage() {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("Jobs");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
   const submitHandler = async () => {
-    if (!title) {
-      alert("Title is required");
+    if (!title || !price) {
+      alert("Title and price are required");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:5000/api/posts", {
+      const response = await fetch(`${API}/api/posts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
         },
         body: JSON.stringify({
           title,
           description,
           price: Number(price),
           category,
-          userId: "PUT_USER_ID_HERE", // 🔥 replace with real logged user id
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message);
+        throw new Error(data.message || "Post failed");
       }
 
       alert("Post Created Successfully!");
-
-      setTitle("");
-      setDescription("");
-      setPrice("");
+      navigate("/");
     } catch (error: any) {
       alert(error.message);
     } finally {

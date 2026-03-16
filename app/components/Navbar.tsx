@@ -1,73 +1,90 @@
-import { Link } from "react-router";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
-interface Props {
-  sidebarOpen: boolean;
-  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export default function Navbar({ sidebarOpen, setSidebarOpen }: Props) {
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch(
-      `http://localhost:5000/api/posts?search=${search}`
-    );
-    const data = await res.json();
-    console.log(data);
-  };
+export default function Navbar() {
+  const [showMenu, setShowMenu] = useState(false);
+  const [showHouses, setShowHouses] = useState(false);
+  const auth = useContext(AuthContext);
 
   return (
     <header className="navbar">
-      {/* LEFT */}
+      {/* LEFT SIDE */}
       <div className="nav-left">
-        <div
-          className={`hamburger ${sidebarOpen ? "active" : ""}`}
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+        <button
+          className="hamburger"
+          onClick={() => setShowMenu(!showMenu)}
         >
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+          ☰
+        </button>
 
-        <Link to="/" className="logo">
-          <span className="logo-icon">◆</span>
+        <a href="/" className="logo">
           Broker
-        </Link>
+        </a>
+
+        {showMenu && (
+          <div className="dropdown">
+            <a href="/">All</a>
+
+            <a href="/jobs">Jobs</a>
+            <a href="/furniture">Furniture</a>
+            <a href="/electronics">Electronics</a>
+
+            {/* Houses Dropdown */}
+            <div className="nested">
+              <button
+                className="nested-btn"
+                onClick={() => setShowHouses(!showHouses)}
+              >
+                Houses ▸
+              </button>
+
+              {showHouses && (
+                <div className="nested-menu">
+                  <a href="/houses/sale">For Sale</a>
+                  <a href="/houses/rent">For Rent</a>
+                </div>
+              )}
+            </div>
+
+            <hr />
+
+            {auth?.user && (
+              <>
+                <a href="/myposts">My Posts</a>
+                <a href="/dashboard">Post Item</a>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* SEARCH */}
-      <form onSubmit={handleSearch} className="nav-center">
-        <input
-          type="text"
-          placeholder="Search anything..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </form>
+      {/* CENTER SEARCH */}
+      <div className="nav-center">
+        <input type="text" placeholder="Search products..." />
+      </div>
 
-      {/* RIGHT */}
+      {/* RIGHT SIDE */}
       <div className="nav-right">
-        <Link to="/login">Login</Link>
-        <Link to="/signup" className="signup-btn">
-          Sign Up
-        </Link>
+        {auth?.user ? (
+          <>
+            <a href="/profile" className="profile-btn">
+              {auth.user.name}
+            </a>
 
-        <div
-          className="profile-wrapper"
-          onClick={() => setProfileOpen(!profileOpen)}
-        >
-          👤
-          {profileOpen && (
-            <div className="profile-dropdown">
-              <Link to="/profile">Profile</Link>
-              <Link to="/dashboard">Dashboard</Link>
-              <Link to="/logout">Logout</Link>
-            </div>
-          )}
-        </div>
+            <button onClick={auth.logout} className="logout-btn">
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <a href="/login" className="login-btn">
+              Login
+            </a>
+            <a href="/register" className="signup-btn">
+              Sign Up
+            </a>
+          </>
+        )}
       </div>
     </header>
   );

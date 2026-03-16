@@ -6,20 +6,28 @@ import {
   ScrollRestoration,
 } from "react-router";
 
-import { useState } from "react";
 import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
+import { AuthProvider } from "./context/AuthContext";
 import "./app.css";
+import "./global.css";
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout() {
   return (
     <html lang="en">
       <head>
         <Meta />
         <Links />
+        <title>Broker Marketplace</title>
       </head>
+
       <body>
-        {children}
+        <AuthProvider>
+          <Navbar />
+          <main className="min-h-screen bg-gray-50">
+            <Outlet />
+          </main>
+        </AuthProvider>
+
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -28,21 +36,5 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  return (
-    <>
-      <Navbar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
-
-      <div className="layout">
-        <Sidebar sidebarOpen={sidebarOpen} />
-        <main className="content">
-          <Outlet />
-        </main>
-      </div>
-    </>
-  );
+  return <Outlet />;
 }
